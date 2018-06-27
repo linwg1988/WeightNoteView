@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WeightNoteView">
+        <attr name="title" format="string"/>
+        <attr name="bottom_label_content" format="string"/>
+        <attr name="bottom_corner_label" format="string"/>
+        <attr name="top_corner_label" format="string"/>
+        <attr name="title_text_color" format="color"/>
+        <attr name="title_bg_color" format="color"/>
+        <attr name="title_text_size" format="dimension"/>
+        <attr name="row_label_list" format="reference"/>
+        <attr name="row_label_bg_color" format="color"/>
+        <attr name="row_label_text_color" format="color"/>
+        <attr name="row_label_text_size" format="dimension"/>
+        <attr name="row_title_divider_color" format="color"/>
+        <attr name="column_label_list" format="reference"/>
+        <attr name="column_label_bg_color" format="color"/>
+        <attr name="column_label_text_color" format="color"/>
+        <attr name="column_label_text_size" format="dimension"/>
+        <attr name="column_divider_color" format="color"/>
+        <attr name="column_title_divider_color" format="color"/>
+        <attr name="content_label_bg_color" format="color"/>
+        <attr name="content_label_text_color" format="color"/>
+        <attr name="content_label_text_size" format="dimension"/>
+        <attr name="content_divider_color" format="color"/>
+        <attr name="bottom_text_size" format="dimension"/>
+        <attr name="bottom_text_color" format="color"/>
+        <attr name="bottom_bg_color" format="color"/>
+        <attr name="cell_padding" format="dimension"/>
+        <attr name="draw_bottom" format="boolean"/>
+        <attr name="support_scale" format="boolean"/>
+        <attr name="min_row_width" format="dimension"/>
+        <attr name="min_row_height" format="dimension"/>
+        <attr name="min_column_width" format="dimension"/>
+        <attr name="border_width" format="dimension"/>
+        <attr name="divider_size" format="dimension"/>
+        <attr name="fade_column_title_border" format="boolean"/>
+    </declare-styleable>
+
+</resources>
