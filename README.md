@@ -11,6 +11,7 @@ dependencies {
 ~~~
 xml中各个属性的解释（文字颜色以及大小，分割线颜色，大小，表格背景色等不再列出）：</br>
 | xml属性名称 | 中文释义 |
+| --- | --- |
 | title | 标题 |
 | bottom_label_content | 底部标题 |
 | top_corner_label |顶部角标 |
