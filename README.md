@@ -10,19 +10,19 @@ dependencies {
 }
 ~~~
 xml中各个属性的解释（文字颜色以及大小，分割线颜色，大小，表格背景色等不再列出）：</br>
-|xml属性名称|中文释义|
-|title|标题|
-|bottom_label_content|底部标题|
-|top_corner_label|顶部角标|
-|top_corner_label|顶部角标|
-|bottom_corner_label|底部角标|
-|cell_padding|表格的内间距|
-|draw_bottom|是否绘制底部|
-|support_scale|是否支持缩放，默认不支持（现在效果不好）|
-|min_row_width|最小行（标题）表格宽度|
-|min_row_height|最小行表格高度|
-|min_column_width|最小行（内容）表格宽度|
-|fade_column_title_border|列标题与内容之间的分割线是否颜色淡化处理|
+| xml属性名称 | 中文释义 |
+| title | 标题 |
+| bottom_label_content | 底部标题 |
+| top_corner_label |顶部角标 |
+| top_corner_label | 顶部角标 |
+| bottom_corner_label | 底部角标 |
+| cell_padding | 表格的内间距 |
+| draw_bottom | 是否绘制底部 |
+| support_scale | 是否支持缩放，默认不支持（现在效果不好） |
+| min_row_width | 最小行（标题）表格宽度 |
+| min_row_height | 最小行表格高度 |
+| min_column_width | 最小行（内容）表格宽度 |
+| fade_column_title_border | 列标题与内容之间的分割线是否颜色淡化处理 |
 
 为控件填充数据的方法</br>
 ~~~Java
