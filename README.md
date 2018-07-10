@@ -6,10 +6,12 @@ gradle中的引用：
 ~~~Java
 gradle:
 dependencies {
-    implementation 'org.linwg1988:weightnoteview:1.0'
+    implementation 'org.linwg1988:weightnoteview:1.1'
 }
 ~~~
 xml中各个属性的解释（文字颜色以及大小，分割线颜色，大小，表格背景色等不再列出）：</br>
+
+
 | xml属性名称 | 中文释义 |
 | --- | --- |
 | title | 标题 |
@@ -25,7 +27,7 @@ xml中各个属性的解释（文字颜色以及大小，分割线颜色，大�
 | min_column_width | 最小行（内容）表格宽度 |
 | fade_column_title_border | 列标题与内容之间的分割线是否颜色淡化处理 |
 
-为控件填充数据的方法</br>
+为控件填充数据的方法：</br>
 ~~~Java
 weightNoteView.setDataGenerator(new WeightNoteView.DataGenerator() {
     @Override
@@ -107,7 +109,7 @@ view.addRule(new Rule() {
     }
 });
 ~~~
-根据实际许久可以添加多个rule，最后添加的rule优先执行。好了大致上就是这么些，有需要的话，朋友们可以试试用看看。</br>
+根据实际需求可以添加多个rule，最后添加的rule优先执行。</br>
 
 
 

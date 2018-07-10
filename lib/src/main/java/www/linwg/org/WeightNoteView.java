@@ -10,9 +10,9 @@ import android.support.annotation.Nullable;
 import android.text.Spannable;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.widget.Scroller;
 
@@ -22,11 +22,11 @@ import java.util.Random;
 
 import www.linwg.org.lib.R;
 
-public class WeightNoteView extends View implements ScaleGestureDetector.OnScaleGestureListener {
+public class WeightNoteView extends View implements ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
     private CharSequence title = "WeightNoteView";
-    private CharSequence topCornerLabel = "±àºÅ";
-    private CharSequence bottomCornerLabel = "×Ü¼Æ";
-    private CharSequence bottomLabelContent = "±í¸ñºÏ¼ÆÄÚÈİ";
+    private CharSequence topCornerLabel = "ç¼–å·";
+    private CharSequence bottomCornerLabel = "æ€»è®¡";
+    private CharSequence bottomLabelContent = "è¡¨æ ¼åˆè®¡å†…å®¹";
 
     private float titleTextSize = 48;
     private int titleTextColor = Color.parseColor("#333333");
@@ -76,14 +76,16 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     private ArrayList<ArrayList<CharSequence>> content = new ArrayList<>();
     private ArrayList<Float> columnWidthList = new ArrayList<>();
 
-    //Æ½»¬¹ö¶¯ÖĞÒªÓÃµ½Scroller
+    //å¹³æ»‘æ»šåŠ¨ä¸­è¦ç”¨åˆ°Scroller
     private Scroller scroller;
-    private VelocityTracker velocityTracker;
     ScaleGestureDetector scaleGestureDetector;
+    GestureDetector gestureDetector;
     private float preScale = 1.0f;
     private float curScale = 1.0f;
-    private boolean isScaleMode;
     private ArrayList<Rule> ruleList;
+    private OnCellItemClickListener mOnCellItemClickListener;
+    //é€Ÿåº¦çº¦æŸæ–¹å‘
+    private boolean velocityConstraintOrientation = false;
 
 
     public WeightNoteView(Context context) {
@@ -184,6 +186,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
         scroller = new Scroller(context);
         scaleGestureDetector = new ScaleGestureDetector(context, this);
+        gestureDetector = new GestureDetector(context, this);
 
         if (columnLabelList.isEmpty()) {
             for (int i = 1; i <= 2; i++) {
@@ -352,8 +355,8 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         float baseBottom = drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight;
 
         for (int i = 0; i < rowLabelList.size(); i++) {
-            int cellTop = (int) (tranY * curScale + baseTop + rowLabelHeight * curScale * i + dividerSize * i);
-            int cellBottom = (int) (tranY * curScale + baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * i);
+            int cellTop = (int) (tranY + baseTop + rowLabelHeight * curScale * i + dividerSize * i);
+            int cellBottom = (int) (tranY + baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * i);
             if (cellBottom >= baseTop && cellTop <= baseTop) {
                 startRowIndex = i;
             }
@@ -373,8 +376,8 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         int startX = 0;
         for (int i = 0; i < columnLabelList.size(); i++) {
             int columnWidth = (int) (columnWidthList.get(i) * curScale);
-            int cellLeft = (int) (tranX * curScale + baseLeft + startX);
-            int cellRight = (int) (tranX * curScale + baseLeft + startX + columnWidth);
+            int cellLeft = (int) (tranX + baseLeft + startX);
+            int cellRight = (int) (tranX + baseLeft + startX + columnWidth);
 
             if (cellLeft <= baseLeft && cellRight >= baseLeft) {
                 startColumnIndex = i;
@@ -469,12 +472,12 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
             CharSequence txt = rowLabelList.get(i);
             float len = paint.measureText(txt, 0, txt.length());
 
-            drawCharSequence(canvas, txt, rowLabelTextColor, rowLabelTextSize * curScale, paint, (rowLabelWidth - len) / 2, baseTop + y + (rowLabelHeight * curScale + dividerSize) * i + tranY * curScale);
+            drawCharSequence(canvas, txt, rowLabelTextColor, rowLabelTextSize * curScale, paint, (rowLabelWidth - len) / 2, baseTop + y + (rowLabelHeight * curScale + dividerSize) * i + tranY);
 
             canvas.drawRect(0,
-                    baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * (i) + tranY * curScale,
+                    baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * (i) + tranY,
                     rowLabelWidth,
-                    baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * (i + 1) + tranY * curScale, dividerPaint);
+                    baseTop + rowLabelHeight * curScale * (i + 1) + dividerSize * (i + 1) + tranY, dividerPaint);
         }
         dividerPaint.setColor(borderColor);
         canvas.drawRect(rowLabelWidth, titleCellHeight + rowLabelHeight + borderWidth, rowLabelWidth + borderWidth, viewHeight, dividerPaint);
@@ -489,7 +492,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         paint.setColor(columnLabelBackgroundColor);
         canvas.drawRect(rowLabelWidth + borderWidth, titleCellHeight, viewWidth, titleCellHeight + rowLabelHeight, paint);
 
-        float startX = rowLabelWidth + borderWidth + tranX * curScale + getOffsetStartX();
+        float startX = rowLabelWidth + borderWidth + tranX + getOffsetStartX();
         for (int i = startColumnIndex; i <= stopColumnIndex; i++) {
             float columnWidth = columnWidthList.get(i) * curScale;
             float columnHeight = rowLabelHeight;
@@ -532,7 +535,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
                 viewWidth,
                 drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight, paint);
 
-        float startX = (rowLabelWidth + borderWidth + tranX * curScale + getOffsetStartX());
+        float startX = (rowLabelWidth + borderWidth + tranX + getOffsetStartX());
         float baseTop = titleCellHeight + rowLabelHeight + borderWidth;
         for (int i = startColumnIndex; i <= stopColumnIndex; i++) {
             float columnWidth = (columnWidthList.get(i) * curScale);
@@ -550,7 +553,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
                     drawCharSequence(canvas, cs, contentLabelTextColor,
                             contentLabelTextSize * curScale, paint,
                             startX + (columnWidth - cLen) / 2,
-                            baseTop + (columnHeight * (j)) + (columnHeight + contentLabelTextSize * curScale) / 2 + tranY * curScale + dividerSize * (j));
+                            baseTop + (columnHeight * (j)) + (columnHeight + contentLabelTextSize * curScale) / 2 + tranY + dividerSize * (j));
                 } else {
                     cs = customFormat.charSequence == null ? cs : customFormat.charSequence;
                     float textSize = contentLabelTextSize * curScale;
@@ -560,21 +563,21 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
                     if (customFormat.bgColor != -1) {
                         paint.setColor(customFormat.bgColor);
                         canvas.drawRect(startX,
-                                baseTop + (columnHeight * (j) + dividerSize * j) + tranY * curScale,
+                                baseTop + (columnHeight * (j) + dividerSize * j) + tranY,
                                 startX + columnWidth,
-                                baseTop + (columnHeight * (j + 1) + dividerSize * (j)) + tranY * curScale, paint);
+                                baseTop + (columnHeight * (j + 1) + dividerSize * (j)) + tranY, paint);
                     }
                     drawCharSequence(canvas, cs, textColor,
                             textSize, paint,
                             startX + (columnWidth - cLen) / 2,
-                            baseTop + (columnHeight * (j)) + (columnHeight + textSize) / 2 + tranY * curScale + dividerSize * (j));
+                            baseTop + (columnHeight * (j)) + (columnHeight + textSize) / 2 + tranY + dividerSize * (j));
                 }
 
                 dividerPaint.setColor(contentDividerColor);
                 canvas.drawRect(startX,
-                        baseTop + (columnHeight * (j + 1) + dividerSize * j) + tranY * curScale,
+                        baseTop + (columnHeight * (j + 1) + dividerSize * j) + tranY,
                         startX + columnWidth,
-                        baseTop + (columnHeight * (j + 1) + dividerSize * (j + 1)) + tranY * curScale, dividerPaint);
+                        baseTop + (columnHeight * (j + 1) + dividerSize * (j + 1)) + tranY, dividerPaint);
             }
 
             dividerPaint.setColor(columnDividerColor);
@@ -616,6 +619,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
                 viewHeight, dividerPaint);
 
         float y = viewHeight - bottomCellHeight + (bottomCellHeight + bottomLabelTextSize) / 2;
+        paint.setTextSize(bottomLabelTextSize);
         float len = paint.measureText(bottomCornerLabel, 0, bottomCornerLabel.length());
 
         drawCharSequence(canvas, bottomCornerLabel, bottomLabelTextColor, bottomLabelTextSize, paint, (rowLabelWidth - len) / 2, y);
@@ -633,96 +637,24 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     float downX, downY;
     float tranX, tranY;
     float lastTranX, lastTranY;
+    float activeTranX, activeTranY;
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        scaleGestureDetector.onTouchEvent(event);
+        return scaleGestureDetector.onTouchEvent(event) && gestureDetector.onTouchEvent(event);
+    }
 
-
-        if (velocityTracker == null) {
-            //Ê¹ÓÃ obtain()·½·¨µÃµ½Õâ¸öÀàµÄÊµÀı
-            velocityTracker = VelocityTracker.obtain();
+    private float getHoldContentWidth() {
+        holdContentWidth = 0;
+        for (int i = 0; i < columnWidthList.size(); i++) {
+            holdContentWidth += columnWidthList.get(i) * curScale + dividerSize;
         }
-        velocityTracker.addMovement(event);
+        return holdContentWidth;
+    }
 
-        float x = event.getRawX();
-        float y = event.getRawY();
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-            if (scroller != null && !scroller.isFinished()) {
-                scroller.abortAnimation();
-                lastTranX = tranX;
-                lastTranY = tranY;
-            }
-            downX = x;
-            downY = y;
-        } else if (action == MotionEvent.ACTION_MOVE) {
-            if (isScaleMode) {
-                return true;
-            }
-            tranX = x - downX + lastTranX;
-            tranY = y - downY + lastTranY;
-
-            tranX = Math.min(0, tranX);
-            tranY = Math.min(0, tranY);
-
-            float xRange = (viewWidth - rowLabelWidth - borderWidth) / curScale - holdContentWidth;
-            float yRange = ((drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight) - titleCellHeight - rowLabelHeight - borderWidth) / curScale - holdContentHeight;
-            xRange = Math.min(0, xRange);
-            yRange = Math.min(0, yRange);
-
-            tranX = Math.max(tranX, xRange);
-            tranY = Math.max(tranY, yRange);
-
-
-            if (tranX == 0) {
-                downX = x;
-                lastTranX = 0;
-            }
-            if (tranX == xRange) {
-                downX = x;
-                lastTranX = xRange;
-            }
-            if (tranY == 0) {
-                downY = y;
-                lastTranY = 0;
-            }
-            if (tranY == yRange) {
-                downY = y;
-                lastTranY = yRange;
-            }
-
-            invalidate();
-        } else if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
-            final VelocityTracker velocityTracker = this.velocityTracker;
-            //Ê¹ÓÃ computeCurrentVelocity(int)³õÊ¼»¯ËÙÂÊµÄµ¥Î»
-            velocityTracker.computeCurrentVelocity(1000);
-            //»ñµÃx·½ÏòµÄËÙÂÊ
-            int velocityX = (int) velocityTracker.getXVelocity();
-            int velocityY = (int) velocityTracker.getYVelocity();
-            //Í¨¹ı velocityX µÄÕı¸ºÖµ¿ÉÒÔÅĞ¶Ï»¬¶¯·½Ïò
-
-            if (velocityTracker != null) {//ÊÍ·Å²¢»ØÊÕ×ÊÔ´
-                this.velocityTracker.clear();
-                this.velocityTracker.recycle();
-                this.velocityTracker = null;
-            }
-
-            if (Math.abs(velocityX) > 0 || Math.abs(velocityY) > 0) {
-                float xRange = (viewWidth - rowLabelWidth - borderWidth) / curScale - holdContentWidth;
-                float yRange = ((drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight) - titleCellHeight - rowLabelHeight - borderWidth) / curScale - holdContentHeight;
-                xRange = Math.min(0, xRange);
-                yRange = Math.min(0, yRange);
-
-                scroller.fling((int) tranX, (int) tranY, velocityX, velocityY, (int) xRange, 0, (int) yRange, 0);
-            } else {
-                lastTranX = tranX;
-                lastTranY = tranY;
-            }
-            invalidate();
-        }
-
-        return true;
+    private float getHoldContentHeight() {
+        holdContentHeight = content.get(0).size() * rowLabelHeight * curScale + (content.get(0).size() - 1) * dividerSize;
+        return holdContentHeight;
     }
 
     @Override
@@ -730,39 +662,54 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         if (scroller.computeScrollOffset()) {
             tranX = scroller.getCurrX();
             tranY = scroller.getCurrY();
-
             postInvalidate();
-
-            if (scroller.isFinished()) {
-                lastTranX = tranX;
-                lastTranY = tranY;
-            }
         }
+    }
+
+    private void judgeEdge() {
+        tranX = Math.min(0, tranX);
+        tranY = Math.min(0, tranY);
+
+        float xRange = (viewWidth - rowLabelWidth - borderWidth) - getHoldContentWidth();
+        float yRange = ((drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight) - titleCellHeight - rowLabelHeight - borderWidth) - getHoldContentHeight();
+        xRange = Math.min(0, xRange);
+        yRange = Math.min(0, yRange);
+
+        tranX = Math.max(tranX, xRange);
+        tranY = Math.max(tranY, yRange);
     }
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        curScale = detector.getScaleFactor() * preScale;//µ±Ç°µÄÉìËõÖµ*Ö®Ç°µÄÉìËõÖµ ±£³ÖÁ¬ĞøĞÔ
-
-        //µ±·Å´ó±¶Êı´óÓÚ5»òÕßËõĞ¡±¶ÊıĞ¡ÓÚ0.1±¶ ¾Í²»ÉìËõÍ¼Æ¬ ·µ»ØtrueÈ¡Ïû´¦ÀíÉìËõÊÖÊÆÊÂ¼ş
+        curScale = detector.getScaleFactor() * preScale;//å½“å‰çš„ä¼¸ç¼©å€¼*ä¹‹å‰çš„ä¼¸ç¼©å€¼ ä¿æŒè¿ç»­æ€§
+        //å½“æ”¾å¤§å€æ•°å¤§äº2æˆ–è€…ç¼©å°å€æ•°å°äº0.5å€ å°±ä¸ä¼¸ç¼©å›¾ç‰‡ è¿”å›trueå–æ¶ˆå¤„ç†ä¼¸ç¼©æ‰‹åŠ¿äº‹ä»¶
         if (curScale > 2) {
             curScale = 2f;
             preScale = 2f;
         }
+
         if (curScale < 0.5) {
             curScale = 0.5f;
             preScale = 0.5f;
         }
-        postInvalidate();
-        preScale = curScale;
 
-        isScaleMode = true;
+        if ((curScale < 2 && preScale < 2 && curScale != preScale) || (curScale > 0.5 && preScale > 0.5 && curScale != preScale)) {
+            tranX = activeTranX * curScale;
+            tranY = activeTranY * curScale;
+            judgeEdge();
+            postInvalidate();
+            preScale = curScale;
+            return true;
+        }
 
         return false;
     }
 
+    boolean isScaleMode = false;
+
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
+        isScaleMode = true;
         return supportScale;
     }
 
@@ -772,7 +719,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * Ìí¼Ó±í¸ñÄÚÈİµÄ×Ô¶¨ÒåÑùÊ½
+     * æ·»åŠ è¡¨æ ¼å†…å®¹çš„è‡ªå®šä¹‰æ ·å¼
      *
      * @param rule
      */
@@ -781,13 +728,13 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
             ruleList = new ArrayList<>();
         }
         if (rule != null) {
-            ruleList.add(0,rule);
+            ruleList.add(0, rule);
         }
         invalidate();
     }
 
     /**
-     * ÉèÖÃĞĞ±êÌâ
+     * è®¾ç½®è¡Œæ ‡é¢˜
      *
      * @param collection
      */
@@ -799,7 +746,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * ÉèÖÃÁĞ±êÌâ
+     * è®¾ç½®åˆ—æ ‡é¢˜
      *
      * @param collection
      */
@@ -811,7 +758,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * °´ÕÕĞĞÊı¾İÉèÖÃ±í¸ñÄÚÈİ£¬´Ë¶ş¼¶¼¯ºÏ£¬Íâ²ãÎªĞĞ£¬ÄÚ²ãÎªÁĞ
+     * æŒ‰ç…§è¡Œæ•°æ®è®¾ç½®è¡¨æ ¼å†…å®¹ï¼Œæ­¤äºŒçº§é›†åˆï¼Œå¤–å±‚ä¸ºè¡Œï¼Œå†…å±‚ä¸ºåˆ—
      *
      * @param collections
      */
@@ -835,7 +782,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * Ìí¼Óµ¥ĞĞÊı¾İ£¬ĞĞÊı¾İµÄ¸öÊı±ØĞëÓëÁĞÊıÏàµÈ
+     * æ·»åŠ å•è¡Œæ•°æ®ï¼Œè¡Œæ•°æ®çš„ä¸ªæ•°å¿…é¡»ä¸åˆ—æ•°ç›¸ç­‰
      *
      * @param rowTitle
      * @param rowList
@@ -863,7 +810,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * °´ÕÕÁĞÊı¾İÉèÖÃ±í¸ñÄÚÈİ£¬´Ë¶ş¼¶¼¯ºÏ£¬Íâ²ãÎªÁĞ£¬ÄÚ²ãÎªĞĞ
+     * æŒ‰ç…§åˆ—æ•°æ®è®¾ç½®è¡¨æ ¼å†…å®¹ï¼Œæ­¤äºŒçº§é›†åˆï¼Œå¤–å±‚ä¸ºåˆ—ï¼Œå†…å±‚ä¸ºè¡Œ
      *
      * @param collections
      */
@@ -887,7 +834,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * Ìí¼Óµ¥ÁĞÊı¾İÒ»¼¶±êÌâ£¬ÁĞÊı¾İ¸öÊı±ØĞëÓëĞĞ±êÌâ¸öÊıÒ»Ö±
+     * æ·»åŠ å•åˆ—æ•°æ®ä¸€çº§æ ‡é¢˜ï¼Œåˆ—æ•°æ®ä¸ªæ•°å¿…é¡»ä¸è¡Œæ ‡é¢˜ä¸ªæ•°ä¸€ç›´
      *
      * @param columnTitle
      * @param list
@@ -909,6 +856,134 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         postInvalidate();
     }
 
+    @Override
+    public boolean onDown(MotionEvent e) {
+        if (scroller != null && !scroller.isFinished()) {
+            scroller.abortAnimation();
+        }
+        downX = e.getRawX();
+        downY = e.getRawY();
+        lastTranX = tranX;
+        lastTranY = tranY;
+        activeTranX = lastTranX;
+        activeTranY = lastTranY;
+        return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        if (mOnCellItemClickListener != null) {
+            int column = findColumn(e.getX());
+            int row = findRow(e.getY());
+            if (row != -1 && column != -1) {
+                mOnCellItemClickListener.onCellItemClicked(row, column);
+            }
+        }
+        return false;
+    }
+
+    private int findRow(float y) {
+        float v = -tranY + y - titleCellHeight - rowLabelHeight;
+        float top = 0;
+        float bottom = 0;
+        for (int i = 0; i < rowLabelList.size(); i++) {
+            top = rowLabelHeight * curScale * i + dividerSize * i;
+            bottom = rowLabelHeight * curScale * (i + 1) + dividerSize * i;
+            if (v > top && v < bottom) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int findColumn(float x) {
+        float v = -tranX + x - rowLabelWidth;
+        float left = 0;
+        float right = 0;
+        for (int i = 0; i < columnWidthList.size(); i++) {
+            left = right + (i == 0 ? 0 : dividerSize);
+            right = left + columnWidthList.get(i) * curScale;
+            if (v > left && v < right) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        int pointerCount = e2.getPointerCount();
+        //å¦‚æœæ˜¯å¤šç‚¹è§¦æ‘¸åˆ™ä¸è¿›è¡Œå¹³ç§»æ“ä½œ
+        if (pointerCount > 1) {
+            return false;
+        }
+
+        tranX -= distanceX;
+        tranY -= distanceY;
+
+        tranX = Math.min(0, tranX);
+        tranY = Math.min(0, tranY);
+
+        float xRange = (viewWidth - rowLabelWidth - borderWidth) - getHoldContentWidth();
+        float yRange = ((drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight) - titleCellHeight - rowLabelHeight - borderWidth) - getHoldContentHeight();
+        xRange = Math.min(0, xRange);
+        yRange = Math.min(0, yRange);
+
+        tranX = Math.max(tranX, xRange);
+        tranY = Math.max(tranY, yRange);
+
+        invalidate();
+        return true;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        if (Math.abs(velocityX) > 0 || Math.abs(velocityY) > 0) {
+            float xRange = (viewWidth - rowLabelWidth - borderWidth) - getHoldContentWidth();
+            float yRange = ((drawBottom ? viewHeight - bottomCellHeight - borderWidth : viewHeight) - titleCellHeight - rowLabelHeight - borderWidth) - getHoldContentHeight();
+            xRange = Math.min(0, xRange);
+            yRange = Math.min(0, yRange);
+
+            if (velocityConstraintOrientation) {
+                if (Math.abs(velocityX) > Math.abs(velocityY) * 3) {
+                    scroller.fling((int) tranX, (int) tranY, (int) velocityX, (int) 0, (int) xRange, 0, (int) yRange, 0);
+                } else if (Math.abs(velocityY) > Math.abs(velocityX) * 3) {
+                    scroller.fling((int) tranX, (int) tranY, (int) 0, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
+                } else {
+                    scroller.fling((int) tranX, (int) tranY, (int) velocityX, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
+                }
+            } else {
+                scroller.fling((int) tranX, (int) tranY, (int) velocityX, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
+            }
+        }
+        invalidate();
+        return true;
+    }
+
+    public void removeRule(Rule rule) {
+        if (ruleList != null) {
+            ruleList.remove(rule);
+        }
+    }
+
+    public interface OnCellItemClickListener {
+        void onCellItemClicked(int rowIndex, int columnIndex);
+    }
+
+    public void setOnCellItemClickListener(OnCellItemClickListener l) {
+        this.mOnCellItemClickListener = l;
+    }
+
     public interface DataGenerator {
         int getRowCount();
 
@@ -922,7 +997,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     }
 
     /**
-     * ÉèÖÃÊı¾İ¹¹ÔìÆ÷£¬ÍÆ¼öÊ¹ÓÃ
+     * è®¾ç½®æ•°æ®æ„é€ å™¨ï¼Œæ¨èä½¿ç”¨
      *
      * @param dataGenerator
      */
@@ -1145,5 +1220,9 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     public void setMinRowColumnWidth(int minRowColumnWidth) {
         this.minRowColumnWidth = minRowColumnWidth;
         postInvalidate();
+    }
+
+    public void setVelocityConstraintOrientation(boolean b) {
+        this.velocityConstraintOrientation = b;
     }
 }

@@ -8,6 +8,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
+import android.widget.Toast;
 
 import www.linwg.org.CustomFormat;
 import www.linwg.org.Rule;
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         final WeightNoteView view = findViewById(R.id.weightNoteView);
-        view.setSupportScale(false);
+        view.setSupportScale(true);
 
 
         view.addRule(new Rule() {
@@ -48,6 +49,12 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 return null;
+            }
+        });
+        view.setOnCellItemClickListener(new WeightNoteView.OnCellItemClickListener() {
+            @Override
+            public void onCellItemClicked(int rowIndex, int columnIndex) {
+                Toast.makeText(MainActivity.this,"行"+rowIndex+"列"+columnIndex+"被点击了",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -90,10 +97,15 @@ public class MainActivity extends AppCompatActivity {
                 SpannableStringBuilder sb = new SpannableStringBuilder("自定义表格");
                 sb.setSpan(new ForegroundColorSpan(Color.parseColor("#ff0000")),0,1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 view.setTitle(sb);
+                view.setTopCornerLabel("编号");
+                view.setBottomCornerLabel("总计");
+                view.setBottomLabelContent("100行100列10000个格子");
+                view.setVelocityConstraintOrientation(true);
+
                 view.setDataGenerator(new WeightNoteView.DataGenerator() {
                     @Override
                     public int getRowCount() {
-                        return 10;
+                        return 100;
                     }
 
                     @Override
@@ -108,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public int getColumnCount() {
-                        return 10;
+                        return 100;
                     }
 
                     @Override

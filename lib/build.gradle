@@ -39,7 +39,7 @@ publish {
     userOrg = 'linwg1988'
     groupId = 'org.linwg1988'
     artifactId = 'weightnoteview'
-    publishVersion = '1.0'
+    publishVersion = '1.1'
     desc = 'A libary uses for view weight note.'
     website = 'https://github.com/linwg1988/weightnoteview'
 }
