@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.Scroller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
@@ -24,9 +25,9 @@ import www.linwg.org.lib.R;
 
 public class WeightNoteView extends View implements ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
     private CharSequence title = "WeightNoteView";
-    private CharSequence topCornerLabel = "编号";
-    private CharSequence bottomCornerLabel = "总计";
-    private CharSequence bottomLabelContent = "表格合计内容";
+    private CharSequence topCornerLabel = "Number";
+    private CharSequence bottomCornerLabel = "Total";
+    private CharSequence bottomLabelContent = "Form aggregate content";
 
     private float titleTextSize = 48;
     private int titleTextColor = Color.parseColor("#333333");
@@ -76,7 +77,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     private ArrayList<ArrayList<CharSequence>> content = new ArrayList<>();
     private ArrayList<Float> columnWidthList = new ArrayList<>();
 
-    //平滑滚动中要用到Scroller
+    //Use Scroller for smooth scrolling
     private Scroller scroller;
     ScaleGestureDetector scaleGestureDetector;
     GestureDetector gestureDetector;
@@ -84,7 +85,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     private float curScale = 1.0f;
     private ArrayList<Rule> ruleList;
     private OnCellItemClickListener mOnCellItemClickListener;
-    //速度约束方向
+    //velocity constraint orientation
     private boolean velocityConstraintOrientation = false;
 
 
@@ -113,9 +114,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
             } else if (index == R.styleable.WeightNoteView_row_label_list) {
                 CharSequence[] textArray = typedArray.getTextArray(index);
                 if (textArray != null) {
-                    for (CharSequence c : textArray) {
-                        rowLabelList.add(c);
-                    }
+                    rowLabelList.addAll(Arrays.asList(textArray));
                 }
             } else if (index == R.styleable.WeightNoteView_row_label_text_size) {
                 rowLabelTextSize = typedArray.getDimensionPixelSize(index, 16);
@@ -128,9 +127,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
             } else if (index == R.styleable.WeightNoteView_column_label_list) {
                 CharSequence[] textArray2 = typedArray.getTextArray(index);
                 if (textArray2 != null) {
-                    for (CharSequence c : textArray2) {
-                        columnLabelList.add(c);
-                    }
+                    columnLabelList.addAll(Arrays.asList(textArray2));
                 }
             } else if (index == R.styleable.WeightNoteView_column_label_text_size) {
                 columnLabelTextSize = typedArray.getDimensionPixelSize(index, 16);
@@ -190,7 +187,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
         if (columnLabelList.isEmpty()) {
             for (int i = 1; i <= 2; i++) {
-                columnLabelList.add("Label" + (i < 10 ? ("0" + i) : String.valueOf(i)));
+                columnLabelList.add("Label" + ("0" + i));
                 ArrayList<CharSequence> contentList = new ArrayList<>();
                 for (int x = 1; x <= 2; x++) {
                     String str = "Row " + x + "  Column " + i;
@@ -201,7 +198,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         }
         if (rowLabelList.isEmpty()) {
             for (int i = 1; i <= 2; i++) {
-                rowLabelList.add(i < 10 ? ("0" + i) : String.valueOf(i));
+                rowLabelList.add(("0" + i));
             }
         }
 
@@ -681,8 +678,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-        curScale = detector.getScaleFactor() * preScale;//当前的伸缩值*之前的伸缩值 保持连续性
-        //当放大倍数大于2或者缩小倍数小于0.5倍 就不伸缩图片 返回true取消处理伸缩手势事件
+        curScale = detector.getScaleFactor() * preScale;
         if (curScale > 2) {
             curScale = 2f;
             preScale = 2f;
@@ -718,11 +714,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         isScaleMode = false;
     }
 
-    /**
-     * 添加表格内容的自定义样式
-     *
-     * @param rule
-     */
     public void addRule(Rule rule) {
         if (ruleList == null) {
             ruleList = new ArrayList<>();
@@ -733,35 +724,16 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         invalidate();
     }
 
-    /**
-     * 设置行标题
-     *
-     * @param collection
-     */
     public void setRowTileData(Collection<CharSequence> collection) {
         rowLabelList.clear();
-        for (CharSequence c : collection) {
-            rowLabelList.add(c);
-        }
+        rowLabelList.addAll(collection);
     }
 
-    /**
-     * 设置列标题
-     *
-     * @param collection
-     */
     public void setColumnTitleData(Collection<CharSequence> collection) {
         columnLabelList.clear();
-        for (CharSequence c : collection) {
-            columnLabelList.add(c);
-        }
+        columnLabelList.addAll(collection);
     }
 
-    /**
-     * 按照行数据设置表格内容，此二级集合，外层为行，内层为列
-     *
-     * @param collections
-     */
     public void setContentDataByHorizontal(Collection<Collection<CharSequence>> collections) {
         content.clear();
         Collection<CharSequence>[] arr = new Collection[collections.size()];
@@ -781,12 +753,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         }
     }
 
-    /**
-     * 添加单行数据，行数据的个数必须与列数相等
-     *
-     * @param rowTitle
-     * @param rowList
-     */
     public void addRow(@Nullable CharSequence rowTitle, @NonNull ArrayList<CharSequence> rowList) {
         if (columnLabelList.size() == 0) {
             throw new IllegalStateException("There is not column title has been set.Please init column title first.");
@@ -809,11 +775,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         postInvalidate();
     }
 
-    /**
-     * 按照列数据设置表格内容，此二级集合，外层为列，内层为行
-     *
-     * @param collections
-     */
     public void setContentDataByVertical(Collection<Collection<CharSequence>> collections) {
         content.clear();
         Collection<CharSequence>[] arr = new Collection[collections.size()];
@@ -833,12 +794,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         }
     }
 
-    /**
-     * 添加单列数据一级标题，列数据个数必须与行标题个数一直
-     *
-     * @param columnTitle
-     * @param list
-     */
     public void addColumn(@NonNull CharSequence columnTitle, @Nullable ArrayList<CharSequence> list) {
         columnLabelList.add(columnTitle);
         if (list != null) {
@@ -889,8 +844,8 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
     private int findRow(float y) {
         float v = -tranY + y - titleCellHeight - rowLabelHeight;
-        float top = 0;
-        float bottom = 0;
+        float top;
+        float bottom;
         for (int i = 0; i < rowLabelList.size(); i++) {
             top = rowLabelHeight * curScale * i + dividerSize * i;
             bottom = rowLabelHeight * curScale * (i + 1) + dividerSize * i;
@@ -903,7 +858,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
     private int findColumn(float x) {
         float v = -tranX + x - rowLabelWidth;
-        float left = 0;
+        float left;
         float right = 0;
         for (int i = 0; i < columnWidthList.size(); i++) {
             left = right + (i == 0 ? 0 : dividerSize);
@@ -918,7 +873,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         int pointerCount = e2.getPointerCount();
-        //如果是多点触摸则不进行平移操作
         if (pointerCount > 1) {
             return false;
         }
@@ -956,9 +910,9 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
             if (velocityConstraintOrientation) {
                 if (Math.abs(velocityX) > Math.abs(velocityY) * 3) {
-                    scroller.fling((int) tranX, (int) tranY, (int) velocityX, (int) 0, (int) xRange, 0, (int) yRange, 0);
+                    scroller.fling((int) tranX, (int) tranY, (int) velocityX, 0, (int) xRange, 0, (int) yRange, 0);
                 } else if (Math.abs(velocityY) > Math.abs(velocityX) * 3) {
-                    scroller.fling((int) tranX, (int) tranY, (int) 0, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
+                    scroller.fling((int) tranX, (int) tranY, 0, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
                 } else {
                     scroller.fling((int) tranX, (int) tranY, (int) velocityX, (int) velocityY, (int) xRange, 0, (int) yRange, 0);
                 }
@@ -996,11 +950,6 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         CharSequence getContentData(int rowIndex, int columnIndex);
     }
 
-    /**
-     * 设置数据构造器，推荐使用
-     *
-     * @param dataGenerator
-     */
     public void setDataGenerator(DataGenerator dataGenerator) {
         if (dataGenerator != null) {
             rowLabelList.clear();
@@ -1027,7 +976,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
     public void onContentPrepareFinished() {
         if (columnLabelList.isEmpty()) {
             for (int i = 1; i <= 2; i++) {
-                columnLabelList.add("Label" + (i < 10 ? ("0" + i) : String.valueOf(i)));
+                columnLabelList.add("Label" + ("0" + i));
 
                 ArrayList<CharSequence> contentList = new ArrayList<>();
                 for (int x = 1; x <= 2; x++) {
@@ -1039,7 +988,7 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
         }
         if (rowLabelList.isEmpty()) {
             for (int i = 1; i <= 2; i++) {
-                rowLabelList.add(i < 10 ? ("0" + i) : String.valueOf(i));
+                rowLabelList.add(("0" + i));
             }
         }
         if (content.size() == 0) {
@@ -1051,6 +1000,17 @@ public class WeightNoteView extends View implements ScaleGestureDetector.OnScale
 
     public void setSupportScale(boolean b) {
         this.supportScale = b;
+    }
+
+    public void reset() {
+        tranX = 0;
+        tranY = 0;
+        lastTranY = 0;
+        lastTranX = 0;
+        activeTranY = 0;
+        activeTranX = 0;
+        curScale = 1;
+        postInvalidate();
     }
 
     public void setTitle(CharSequence title) {
