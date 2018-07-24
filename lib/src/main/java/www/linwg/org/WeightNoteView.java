@@ -21,7 +21,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
-import www.linwg.org.lib.R;
+import www.linwg.org.weightnoteview.R;
+
 
 public class WeightNoteView extends View implements ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
     private CharSequence title = "WeightNoteView";

@@ -6,7 +6,7 @@ gradle中的引用：
 ~~~Java
 gradle:
 dependencies {
-    implementation 'org.linwg1988:weightnoteview:1.2'
+    implementation 'org.linwg1988:weightnoteview:1.3'
 }
 ~~~
 xml中各个属性的解释（文字颜色以及大小，分割线颜色，大小，表格背景色等不再列出）：</br>
